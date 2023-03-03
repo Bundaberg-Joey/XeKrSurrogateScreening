@@ -20,7 +20,7 @@ from raspa import XeKrSeparation
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-p', type=int, help='Number of CPUs to run in pool.', default=1)
-parser.add_argument('-n', type=int, help='Total number of MOFs to screen.', default=72)
+parser.add_argument('-n', type=int, help='Total number of MOFs to screen.', default=74)
 args = parser.parse_args()
 
 run_code = uuid4().hex[::4]
