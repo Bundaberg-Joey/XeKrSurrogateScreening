@@ -23,8 +23,6 @@ parser.add_argument('-p', type=int, help='Number of CPUs to run in pool.', defau
 parser.add_argument('-n', type=int, help='Total number of MOFs to screen.', default=72)
 args = parser.parse_args()
 
-print(args)
-
 ami_filename = args.f
 pool_size = args.p
 n_tasks = args.n
