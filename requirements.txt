@@ -1,0 +1,9 @@
+numpy
+ase
+gpflow
+pandas
+scikit-learn
+scipy
+h5py
+pytest
+ipython
