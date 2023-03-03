@@ -32,7 +32,7 @@ n_tasks = args.n
 
 # ---------------------------------------------------------------------------------------
 # set up ML code
-hdf5_dataset = Hdf5Dataset('<path_to_hdf5_file>')
+hdf5_dataset = Hdf5Dataset('E7_05.hdf5')
 
 model = DenseGaussianProcessregressor(data_set=hdf5_dataset)
 
