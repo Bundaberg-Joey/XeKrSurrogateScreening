@@ -38,8 +38,8 @@ model = DenseGaussianProcessregressor(data_set=hdf5_dataset)
 
 surrogate_ranker = GreedySeparationRanker(
     model=model, 
-    acquisitor=GreedyNRanking(n_opt=5),
-    n_post=50
+    acquisitor=GreedyNRanking(n_opt=100),
+    n_post=100
 )
 
 
