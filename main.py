@@ -53,7 +53,7 @@ pool.set("ncpus", pool_size)
 config = Configuration(
     scheduler=SerialSchedulerFactory(),
     worker=ShareMemorySingleThreadWorkerFactory(),
-    data=InMemoryDataManager.from_indexed_list_in_file("cif_list.txt",
+    data=InMemoryDataManager.from_indexed_list_in_file("E7_05_cif_list.txt",
                                                        calc_schema=calc.schema(),
                                                        surrogate_schema=surrogate_ranker.schema(),
                                                        csv_filename=ami_filename
