@@ -41,3 +41,9 @@ class GreedyNRanking:
         v, c = np.unique(top_n_ind, return_counts=True)
         alpha[v] += c
         return alpha
+
+
+class ThompsonRanking:
+    def score_points(self, posterior):
+        posterior = np.ravel(posterior)
+        return posterior

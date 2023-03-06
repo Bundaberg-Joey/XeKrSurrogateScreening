@@ -1,4 +1,4 @@
-from typing import Sequence, Iterator
+from typing import Sequence, Iterator, Union
 
 import numpy as np
 from numpy.typing import NDArray
@@ -9,7 +9,7 @@ from ami.abc.ranker import Index
 from ami.schema import Schema
 
 from surrogate.dense import DenseGaussianProcessregressor
-from surrogate.acquisition import GreedyNRanking
+from surrogate.acquisition import GreedyNRanking, ThompsonRanking
 
 
 # ---------------------------------------------------------------------------------------
@@ -36,18 +36,11 @@ class RandomRanker(RankerInterface):
 
 # ---------------------------------------------------------------------------------------
 
-
-class GreedySeparationRanker(ami.abc.RankerInterface):
-    def __init__(self, model: DenseGaussianProcessregressor, acquisitor: GreedyNRanking, n_post: int=50) -> None:
-        """
-        Parameters
-        ----------
-        model : model object
-            Must have `fit(X_ind, y)` and `sample_y(n_samples)` methods.            
-        """
+class SurrogateModelRanker(ami.abc.RankerInterface):
+    
+    def __init__(self, model, acquisitor) -> None:
         self.model = model
         self.acquisitor = acquisitor
-        self.n_post = int(n_post)
         
     def fit(self, x: Sequence[Feature], y: Sequence[Target]) -> None:
         """Fit model to passed data points
@@ -76,34 +69,56 @@ class GreedySeparationRanker(ami.abc.RankerInterface):
         NDArray[np.float_]
             ranked highest to lowest, element 0 is largest ranked, element -1 is lowest ranked.
         """
-        alpha_argsort = self.determine_alpha(x)
-        return alpha_argsort  # index of largest alpha is first
-                
-    def determine_alpha(self, X_ind: NDArray[np.int_]) -> NDArray[np.int_]:
-        """Determine the alpha (ranking values) for each data point in `X_ind`.
-        Performs 50 posterior samples for each instance in self.model and determines the absolute values.
-
-        Parameters
-        ----------
-        X_ind : NDArray[np.int_]
-            indices of data points to use.
-            Sparse process will sample on entire dataset so sample then index afterwards.
-
-        Returns
-        -------
-        NDArray[np.int_]
-            ranked alpha terms for the specified indices ranked highest t lowest where highest is most recommended.
-        """
-        posterior = abs(self.model.sample_y(n_samples=self.n_post))
-        alpha = self.acquisitor.score_points(posterior)
-        alpha = alpha[X_ind]
-        alpha = np.argsort(alpha)[::-1]
-        return alpha
+        rankings = self.rank_points(x)
+        return rankings  # index of largest alpha is first
     
     def schema(self) -> SchemaInterface:
         return Schema(
             input_schema=[('index', int)],
             output_schema=[('target', float)]
         )
+
+
+class PosteriorSurrogateRanker(SurrogateModelRanker):
+    def __init__(self, 
+                 model: DenseGaussianProcessregressor, 
+                 acquisitor: Union[GreedyNRanking, ThompsonRanking], 
+                 n_post: int=50, 
+                 take_absolute=True
+                 ) -> None:
+        """
+        Parameters
+        ----------
+        model : model object
+            Must have `fit(X_ind, y)` and `sample_y(n_samples)` methods.            
+        """
+        self.model = model
+        self.acquisitor = acquisitor
+        self.n_post = int(n_post)
+        self.take_absolute = bool(take_absolute)
+        
+    def rank_points(self, X_ind: NDArray[np.int_]) -> NDArray[np.int_]:
+        """Determine the alpha (ranking values) for each data point in `X_ind`.
+        Performs self.n_post posterior samples for each instance in self.model and determines the absolute values.
+
+        Parameters
+        ----------
+        X_ind : NDArray[np.int_]
+            indices of data points to use.
+
+        Returns
+        -------
+        NDArray[np.int_]
+            ranked alpha terms for the specified indices ranked highest t lowest where highest is most recommended.
+        """
+        posterior = self.model.sample_y(n_samples=self.n_post)
+        
+        if self.take_absolute:
+            posterior = abs(posterior)
+        
+        alpha = self.acquisitor.score_points(posterior)
+        alpha = alpha[X_ind]
+        ranked_points = np.argsort(alpha)[::-1]
+        return ranked_points
 
 # ---------------------------------------------------------------------------------------

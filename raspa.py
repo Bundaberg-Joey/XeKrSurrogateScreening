@@ -14,6 +14,8 @@ from ami.schema import Schema
 
 from ami.serialized_opaque import SerializedOpaque
 from ami.abc import OpaqueParameters, OpaqueResults
+from surrogate.data import Hdf5Dataset
+
 from multiprocessing import Lock
 
 def find_minimum_image(cell, cutoff):
@@ -107,6 +109,23 @@ class XeKrSeparation(ami.abc.CalculatorInterface):
         absorbed_Xe = components["xenon"]
         absorbed_Kr = components["krypton"]
         return np.log(1 + (4 * absorbed_Xe)) - np.log(1 + absorbed_Kr)
+
+    def schema(self) -> SchemaInterface:
+        return Schema(
+            input_schema=[('cif_content', bytes), ('subdir', str)],
+            output_schema=[('selectivity', float)]
+        )
+
+
+class CachedXeKrseparation(ami.abc.CalculatorInterface):
+    
+    def __init__(self, dataset):
+        self.dataset = dataset
+        
+    def calculate(self, parameters: SerializedOpaque) -> SerializedOpaque:
+        index = int(parameters["subdir"])
+        separation = float(self.dataset[index])
+        return separation
 
     def schema(self) -> SchemaInterface:
         return Schema(
