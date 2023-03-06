@@ -20,8 +20,8 @@ from raspa import XeKrSeparation, CachedXeKrseparation
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-n', type=int, help='Total number of MOFs to screen.', default=370)
-parser.add_argument('-p', type=int, help='posterior samples', default=100)
-parser.add_argument('-o', type=int, help='greedy variant', default=100)
+parser.add_argument('-p', type=int, help='posterior samples')
+parser.add_argument('-o', type=int, help='greedy variant')
 args = parser.parse_args()
 
 code = uuid4().hex[::4]
