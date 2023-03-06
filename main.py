@@ -19,20 +19,19 @@ from raspa import XeKrSeparation, CachedXeKrseparation
 # collect args
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-p', type=int, help='Number of CPUs to run in pool.', default=1)
-parser.add_argument('-n', type=int, help='Total number of MOFs to screen.', default=3)
-parser.add_argument('-r', type=str, help='Ranking', default='T')
-parser.add_argument('-a', type=str, help='use absolute posterior or not', default='False')
+parser.add_argument('-n', type=int, help='Total number of MOFs to screen.', default=370)
+parser.add_argument('-p', type=int, help='posterior samples', default=100)
+parser.add_argument('-o', type=int, help='greedy variant', default=100)
 args = parser.parse_args()
 
 code = uuid4().hex[::4]
-pool_size = args.p
+pool_size = 1
 n_tasks = args.n
-ranking = {'G': GreedyNRanking(), 'T': ThompsonRanking()}[args.r]
-use_abs = {'True': True, 'False': False }[args.a]
+n_opt = int(args.o)
+n_post = int(args.p)
 
 
-run_code = F'{n_tasks}_{args.r}_{use_abs}_{code}'
+run_code = F'GreedyN_{n_opt}_{n_post}_{code}'
 
 # ---------------------------------------------------------------------------------------
 # set up ML code
@@ -42,9 +41,8 @@ model = DenseGaussianProcessregressor(data_set=hdf5_dataset)
 
 surrogate_ranker = PosteriorSurrogateRanker(
     model=model, 
-    acquisitor=ranking,
-    n_post=1 if args.r == 'T' else 100,
-    take_absolute=use_abs
+    acquisitor=GreedyNRanking(n_opt=n_opt),
+    n_post=n_post,
 )
 
 print(surrogate_ranker.n_post)

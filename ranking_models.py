@@ -84,7 +84,6 @@ class PosteriorSurrogateRanker(SurrogateModelRanker):
                  model: DenseGaussianProcessregressor, 
                  acquisitor: Union[GreedyNRanking, ThompsonRanking], 
                  n_post: int=50, 
-                 take_absolute=True
                  ) -> None:
         """
         Parameters
@@ -95,7 +94,6 @@ class PosteriorSurrogateRanker(SurrogateModelRanker):
         self.model = model
         self.acquisitor = acquisitor
         self.n_post = int(n_post)
-        self.take_absolute = bool(take_absolute)
         
     def rank_points(self, X_ind: NDArray[np.int_]) -> NDArray[np.int_]:
         """Determine the alpha (ranking values) for each data point in `X_ind`.
@@ -112,10 +110,6 @@ class PosteriorSurrogateRanker(SurrogateModelRanker):
             ranked alpha terms for the specified indices ranked highest t lowest where highest is most recommended.
         """
         posterior = self.model.sample_y(n_samples=self.n_post)
-        
-        if self.take_absolute:
-            posterior = abs(posterior)
-        
         alpha = self.acquisitor.score_points(posterior)
         alpha = alpha[X_ind]
         ranked_points = np.argsort(alpha)[::-1]
