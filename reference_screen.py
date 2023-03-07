@@ -20,7 +20,7 @@ X_train_ind = list(np.random.choice(len(X_ref), 1))
 y_train = y_ref[X_train_ind]
 
 
-for itr in range(1, 3):        
+for itr in range(1, 370):        
     
     print(X_train_ind)
     model.fit(X_train_ind, y_train)
