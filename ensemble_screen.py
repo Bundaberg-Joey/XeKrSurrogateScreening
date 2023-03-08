@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 
 from surrogate.acquisition import GreedyNRanking
-from surrogate.dense import DenseTanimotoGPR, DenseMaternGPR, DenseGaussianProcessregressor, EnsembleGPR
+from surrogate.dense import DenseMaternGPR, DenseGaussianProcessregressor, EnsembleGPR
 from surrogate.data import Hdf5Dataset
 
 
@@ -23,7 +23,7 @@ run_code = F'Ensemble_{uuid4().hex[::4]}'
 y_ref = Hdf5Dataset('E7_07_XeKr_values.hdf5')
 
 rbf_model = DenseGaussianProcessregressor(data_set=Hdf5Dataset('E7_05.hdf5'))
-tanimoto_model = DenseTanimotoGPR(data_set=Hdf5Dataset(fp_file))
+tanimoto_model = DenseMaternGPR(data_set=Hdf5Dataset(fp_file), matern=32)
 model = EnsembleGPR(rbf_model, tanimoto_model)
 
 acquisitor = GreedyNRanking(n_opt=100)
