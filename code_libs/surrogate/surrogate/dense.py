@@ -3,6 +3,7 @@ from numpy.typing import NDArray
 import gpflow
 
 from surrogate.data import Hdf5Dataset
+from surrogate.kernel import SafeMatern12, SafeMatern32, SafeMatern52
 
 
 # ------------------------------------------------------------------------------------------------------------------------------------
@@ -72,3 +73,23 @@ class DenseGaussianProcessregressor:
 
 
 # ------------------------------------------------------------------------------------------------------------------------------------
+
+
+class DenseMaternGPR(DenseGaussianProcessregressor):
+    
+    def __init__(self, data_set: Hdf5Dataset, matern) -> None:
+        super().__init__(data_set)
+        self.base_kernel = {12: SafeMatern12, 32: SafeMatern32, 52: SafeMatern52}[matern]
+    
+    def build_model(self, X: NDArray[NDArray[np.float_]], y: NDArray[np.float_]) -> gpflow.models.GPR:
+        if y.ndim != 2:
+            y = y.reshape(-1, 1)  # gpflow needs column vector for target
+        
+        model = gpflow.models.GPR(
+        data=(X, y), 
+        kernel=self.base_kernel(lengthscales=np.ones(X.shape[1])),
+        mean_function=gpflow.mean_functions.Constant()
+        )
+        return model
+
+

@@ -1,19 +1,30 @@
 from uuid import uuid4
+import argparse
 
 import numpy as np
 import pandas as pd
 
 from surrogate.acquisition import GreedyNRanking
-from surrogate.dense import DenseGaussianProcessregressor
+from surrogate.dense import DenseGaussianProcessregressor, DenseMaternGPR
 from surrogate.data import Hdf5Dataset
 
 
 # ----------------------------------------------------
-run_code = uuid4().hex[::4]
+
+parser = argparse.ArgumentParser()
+parser.add_argument('-k', type=int, help='kernel')
+args = parser.parse_args()
+
+kernel_key = int(args.k)
+assert kernel_key in [12, 32, 52]
+
+
+# ----------------------------------------------------
+run_code = F'Matern{kernel_key}_{uuid4().hex[::4]}'
 X_ref = Hdf5Dataset('E7_05.hdf5')
 y_ref = Hdf5Dataset('E7_07_XeKr_values.hdf5')
 
-model = DenseGaussianProcessregressor(data_set=X_ref)
+model = DenseMaternGPR(data_set=X_ref, matern=kernel_key)
 acquisitor = GreedyNRanking(n_opt=100)
 
 X_train_ind = list(np.random.choice(len(X_ref), 1))
