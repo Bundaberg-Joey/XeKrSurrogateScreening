@@ -104,3 +104,21 @@ class DenseTanimotoGPR(DenseGaussianProcessregressor):
         mean_function=gpflow.mean_functions.Constant()
         )
         return model
+
+
+# ------------------------------------------------------------------------------------------------------------------------------------
+
+
+class EnsembleGPR:
+    
+    def __init__(self, ma: DenseGaussianProcessregressor, mb: DenseGaussianProcessregressor) -> None:
+        self.ma = ma
+        self.mb = mb
+        
+    def fit(self, X_ind: NDArray[np.int_], y_val: NDArray[np.float_]) -> None:
+        self.ma.fit(X_ind, y_val)
+        self.mb.fit(X_ind, y_val)
+            
+    def sample_y(self, n_samples=1):
+        samples = [m.sample_y(n_samples=n_samples) for m in [self.ma, self.mb]]
+        return np.hstack(samples)  # n_entries_in_X, n_samples * len(self.models)
