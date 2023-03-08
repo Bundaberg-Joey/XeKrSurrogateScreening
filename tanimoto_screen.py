@@ -35,16 +35,16 @@ for itr in range(1, 370):
     
     print(X_train_ind)
     model.fit(X_train_ind, y_train)
-    posterior = abs(model.sample_y(n_samples=100))
+    posterior = model.sample_y(n_samples=100)
     
     alpha = acquisitor.score_points(posterior)
     alpha_ranked = np.argsort(alpha)[::-1]
     to_sample = [i for i in alpha_ranked if i not in X_train_ind][0]
     
     X_train_ind.append(to_sample)    
-    y_train = abs(y_ref[X_train_ind])
+    y_train = y_ref[X_train_ind]
     
-    df = pd.DataFrame({'x': X_train_ind, 'y_abs': y_train.ravel()})
+    df = pd.DataFrame({'x': X_train_ind, 'y': y_train.ravel()})
     df.to_csv(F'ami_ref_run_{run_code}.csv', index=False)
     
     
