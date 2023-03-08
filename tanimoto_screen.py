@@ -12,7 +12,7 @@ from surrogate.data import Hdf5Dataset
 # ----------------------------------------------------
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-f', type=int, help='fp file to use')
+parser.add_argument('-f', type=str, help='fp file to use')
 args = parser.parse_args()
 
 fp_file = str(args.f)
