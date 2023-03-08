@@ -19,7 +19,7 @@ fp_file = str(args.f)
 assert fp_file in [F'E7_11_PCFP_{i}_ind_1024.hdf5' for i in range(3)]
 
 # ----------------------------------------------------
-run_code = F'Ensemble_{uuid4().hex[::4]}'
+run_code = F'Ensemble_{fp_file}_{uuid4().hex[::4]}'
 y_ref = Hdf5Dataset('E7_07_XeKr_values.hdf5')
 
 rbf_model = DenseGaussianProcessregressor(data_set=Hdf5Dataset('E7_05.hdf5'))
