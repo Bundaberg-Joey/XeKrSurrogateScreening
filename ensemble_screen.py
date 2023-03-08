@@ -10,11 +10,20 @@ from surrogate.data import Hdf5Dataset
 
 
 # ----------------------------------------------------
+
+parser = argparse.ArgumentParser()
+parser.add_argument('-f', type=str, help='fp file to use')
+args = parser.parse_args()
+
+fp_file = str(args.f)
+assert fp_file in [F'E7_11_PCFP_{i}_ind_1024.hdf5' for i in range(3)]
+
+# ----------------------------------------------------
 run_code = F'Ensemble_{uuid4().hex[::4]}'
 y_ref = Hdf5Dataset('E7_07_XeKr_values.hdf5')
 
 rbf_model = DenseGaussianProcessregressor(data_set=Hdf5Dataset('E7_05.hdf5'))
-tanimoto_model = DenseTanimotoGPR(data_set=Hdf5Dataset('E7_11_PCFP_1_ind_1024.hdf5'))
+tanimoto_model = DenseTanimotoGPR(data_set=Hdf5Dataset(fp_file))
 model = EnsembleGPR(rbf_model, tanimoto_model)
 
 acquisitor = GreedyNRanking(n_opt=100)
