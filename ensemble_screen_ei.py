@@ -4,7 +4,7 @@ import argparse
 import numpy as np
 import pandas as pd
 
-from surrogate.acquisition import GreedyNRanking
+from surrogate.acquisition import ExpectedImprovementRanking
 from surrogate.dense import DenseMaternGPR, DenseTanimotoGPR, EnsembleGPR
 from surrogate.data import Hdf5Dataset
 
@@ -19,14 +19,14 @@ fp_file = str(args.f)
 assert fp_file in [F'E7_11_PCFP_{i}_ind_1024.hdf5' for i in range(3)]
 
 # ----------------------------------------------------
-run_code = F'Ensemble_greedy_{fp_file}_{uuid4().hex[::4]}'
+run_code = F'Ensemble_ei_{fp_file}_{uuid4().hex[::4]}'
 y_ref = Hdf5Dataset('E7_07_XeKr_values.hdf5')
 
 physical_model = DenseMaternGPR(data_set=Hdf5Dataset('E7_05.hdf5'), matern=32)
 tanimoto_model = DenseTanimotoGPR(data_set=Hdf5Dataset(fp_file))
 model = EnsembleGPR(physical_model, tanimoto_model)
 
-acquisitor = GreedyNRanking(n_opt=100)
+acquisitor = ExpectedImprovementRanking()
 
 X_train_ind = list(np.random.choice(len(y_ref), 1))
 y_train = y_ref[X_train_ind]
@@ -36,9 +36,9 @@ for itr in range(1, 370):
     
     print(X_train_ind)
     model.fit(X_train_ind, y_train)
-    posterior = model.sample_y(n_samples=50)  # not 100 since will sample 50 from each model in ensemble --> 100 total
+    mu, std = model.predict()
     
-    alpha = acquisitor.score_points(posterior)
+    alpha = acquisitor.score_points(mu, std, y_train.max())
     alpha_ranked = np.argsort(alpha)[::-1]
     to_sample = [i for i in alpha_ranked if i not in X_train_ind][0]
     

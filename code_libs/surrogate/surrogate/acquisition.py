@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.stats import norm
 
 
 class GreedyNRanking:
@@ -47,3 +48,11 @@ class ThompsonRanking:
     def score_points(self, posterior):
         posterior = np.ravel(posterior)
         return posterior
+    
+    
+class ExpectedImprovementRanking:
+    def score_points(self, mu, std, y_max):
+        improvement = mu - y_max
+        scaled_mu = np.divide(improvement, std)
+        alpha = improvement * norm.cdf(scaled_mu) + std * norm.pdf(scaled_mu)
+        return alpha

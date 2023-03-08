@@ -70,6 +70,15 @@ class DenseGaussianProcessregressor:
             return posterior.numpy().T[0]
         else:
             raise ValueError('Model not yet fit to data.')
+        
+    def predict(self):
+        # returns predicted values and the standard deviation of the those values
+        if self._model_built:
+            mu, var = self.model.predict_y(self.data_set[:])
+            mu, var = mu.numpy().ravel(), var.numpy().ravel()
+            return mu, np.sqrt(var)
+        else:
+            raise ValueError('Model not yet fit to data.')
 
 
 # ------------------------------------------------------------------------------------------------------------------------------------
@@ -122,3 +131,17 @@ class EnsembleGPR:
     def sample_y(self, n_samples=1):
         samples = [m.sample_y(n_samples=n_samples) for m in [self.ma, self.mb]]
         return np.hstack(samples)  # n_entries_in_X, n_samples * len(self.models)
+    
+    def predict(self):
+        def _calc_precision(std):
+            return 1 / (std ** 2)
+
+        mu_1, std_1 = self.ma.predict()
+        mu_2, std_2 = self.mb.predict()
+
+        p1, p2 = _calc_precision(std_1), _calc_precision(std_2)
+        p = p1 + p2
+        
+        mu = ((p1 * mu_1) + (p2 * mu_2)) / p
+        std = 1 / np.sqrt(p)
+        return mu, std
