@@ -1,6 +1,7 @@
 import numpy as np
 from numpy.typing import NDArray
 import gpflow
+from sklearn.ensemble import RandomForestRegressor
 
 from surrogate.data import Hdf5Dataset
 from surrogate.kernel import SafeMatern12, SafeMatern32, SafeMatern52, TanimotoKernel
@@ -144,4 +145,42 @@ class EnsembleGPR:
         
         mu = ((p1 * mu_1) + (p2 * mu_2)) / p
         std = 1 / np.sqrt(p)
+        return mu, std
+    
+    
+# ------------------------------------------------------------------------------------------------------------------------------------
+
+
+class DenseRandomForestRegressor:
+    
+    def __init__(self, data_set: Hdf5Dataset) -> None:
+        self.data_set = data_set
+        self.model = None
+
+    def fit(self, X_ind: NDArray[np.int_], y_val: NDArray[np.float_]) -> None:
+        """Fit the backend RandomForestRegressor.
+
+        Parameters
+        ----------
+        X_ind : NDArray[np.int_]
+            Indices of data points to use when fitting.
+            They are also incorporated into the inducing feature matrix each time fit is called.
+            
+        y_val : NDArray[np.float_]
+            Target values for each entry. 
+            
+        Returns
+        -------
+        None
+        """
+        X = self.data_set[X_ind]
+        self.model = RandomForestRegressor()
+        self.model.fit(X, y_val)
+        
+    def predict(self):
+        # returns predicted values and the standard deviation of the those values
+        X = self.data_set[:]
+        ensemble_predictions = np.vstack([m.predict(X) for m in self.model.estimators_])
+        mu = ensemble_predictions.mean(0)
+        std = ensemble_predictions.std(0)
         return mu, std
