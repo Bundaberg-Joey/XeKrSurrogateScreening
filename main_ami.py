@@ -7,12 +7,12 @@ from ami.scheduler import SerialSchedulerFactory
 from ami.worker import ShareMemorySingleThreadWorkerFactory
 from ami.worker_pool import SingleNodeWorkerPoolFactory
 
-from surrogate.acquisition import GreedyNRanking
-from surrogate.dense import DenseGaussianProcessregressor
+from surrogate.acquisition import GreedyNRanking, EiRanking
+from surrogate.dense import DenseGaussianProcessregressor, DenseRandomForestRegressor
 from surrogate.data import Hdf5Dataset
 
-from ranking_models import , RandomRanker
-from raspa import XeKrSeparation, CachedXeKrseparation
+from ranking_models import PosteriorRanker, ExpectedImprovementRanker, RandomRanker
+from raspa import XeKrSeparation
 
 
 # ---------------------------------------------------------------------------------------
@@ -20,38 +20,38 @@ from raspa import XeKrSeparation, CachedXeKrseparation
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-n', type=int, help='Total number of MOFs to screen.', default=370)
-parser.add_argument('-p', type=int, help='posterior samples')
-parser.add_argument('-o', type=int, help='greedy variant')
+parser.add_argument('-r', type=str, help='Ranker to use')
 args = parser.parse_args()
 
 code = uuid4().hex[::4]
 pool_size = 1
 n_tasks = args.n
-n_opt = int(args.o)
-n_post = int(args.p)
-
-
-run_code = F'GreedyN_{n_opt}_{n_post}_{code}'
+ranker_choice = args.r
+run_code = F'{ranker_choice}_{code}'
 
 # ---------------------------------------------------------------------------------------
 # set up ML code
-hdf5_dataset = Hdf5Dataset('E7_05.hdf5')
-
+hdf5_dataset = Hdf5Dataset('Ex7_01_physical.hdf5')
 model = DenseGaussianProcessregressor(data_set=hdf5_dataset)
 
-surrogate_ranker = PosteriorSurrogateRanker(
-    model=model, 
-    acquisitor=GreedyNRanking(n_opt=n_opt),
-    n_post=n_post,
+greedy_n_ranker = PosteriorRanker(
+    model=DenseGaussianProcessregressor(data_set=hdf5_dataset),
+    acquisitor=GreedyNRanking(n_opt=100),
+    n_post=100
+    )
+
+ei_ranker = ExpectedImprovementRanker(
+    model=DenseRandomForestRegressor(dataset=hdf5_dataset),
+    acquisitor=EiRanking()
 )
 
-print(surrogate_ranker.n_post)
+surrogate_ranker = {'ei': ei_ranker, 'greedy': greedy_n_ranker}[ranker_choice]
 
 cached_results = Hdf5Dataset('E7_07_XeKr_values.hdf5')
 
 # # ---------------------------------------------------------------------------------------
 # Set up AMI code
-calc = CachedXeKrseparation(dataset=cached_results)
+calc = XeKrSeparation.from_template_folder(F"internal_workdir_{run_code}", "raspa_template")
 init_ranker = RandomRanker()
 pool = SingleNodeWorkerPoolFactory()
 pool.set("ncpus", pool_size)
