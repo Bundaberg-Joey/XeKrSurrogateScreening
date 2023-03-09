@@ -29,7 +29,7 @@ greedy_n_ranker = PosteriorRanker(
     )
 
 ei_ranker = ExpectedImprovementRanker(
-    model=DenseRandomForestRegressor(dataset=X_ref),
+    model=DenseRandomForestRegressor(data_set=X_ref),
     acquisitor=EiRanking()
 )
 
