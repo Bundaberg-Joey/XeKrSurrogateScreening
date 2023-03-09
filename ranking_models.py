@@ -1,4 +1,4 @@
-from typing import Sequence, Iterator, Union
+from typing import Sequence, Iterator
 
 import numpy as np
 from numpy.typing import NDArray
@@ -7,9 +7,6 @@ import ami.abc
 from ami.abc import SchemaInterface, RankerInterface, Feature, Target
 from ami.abc.ranker import Index
 from ami.schema import Schema
-
-from surrogate.dense import DenseGaussianProcessregressor
-from surrogate.acquisition import GreedyNRanking, ThompsonRanking
 
 
 # ---------------------------------------------------------------------------------------
@@ -69,7 +66,9 @@ class SurrogateModelRanker(ami.abc.RankerInterface):
         NDArray[np.float_]
             ranked highest to lowest, element 0 is largest ranked, element -1 is lowest ranked.
         """
-        rankings = self.rank_points(x)
+        alpha = self.determine_alpha()
+        alpha_x = alpha[x]
+        rankings = np.argsort(alpha_x)[::-1]
         return rankings  # index of largest alpha is first
     
     def schema(self) -> SchemaInterface:
@@ -79,40 +78,60 @@ class SurrogateModelRanker(ami.abc.RankerInterface):
         )
 
 
-class PosteriorSurrogateRanker(SurrogateModelRanker):
-    def __init__(self, 
-                 model: DenseGaussianProcessregressor, 
-                 acquisitor: Union[GreedyNRanking, ThompsonRanking], 
-                 n_post: int=50, 
-                 ) -> None:
-        """
-        Parameters
-        ----------
-        model : model object
-            Must have `fit(X_ind, y)` and `sample_y(n_samples)` methods.            
-        """
-        self.model = model
-        self.acquisitor = acquisitor
+# ---------------------------------------------------------------------------------------
+
+
+class PosteriorRanker(SurrogateModelRanker):
+    
+    def __init__(self, model, acquisitor, n_post=100) -> None:
+        super().__init__(model, acquisitor)
         self.n_post = int(n_post)
-        
-    def rank_points(self, X_ind: NDArray[np.int_]) -> NDArray[np.int_]:
-        """Determine the alpha (ranking values) for each data point in `X_ind`.
-        Performs self.n_post posterior samples for each instance in self.model and determines the absolute values.
+    
+    def determine_alpha(self) -> NDArray:
+        """Determine the alpha (ranking values) for all entries in the full dataset.
 
         Parameters
         ----------
-        X_ind : NDArray[np.int_]
-            indices of data points to use.
+        None
 
         Returns
         -------
-        NDArray[np.int_]
-            ranked alpha terms for the specified indices ranked highest t lowest where highest is most recommended.
+        NDArray
+            alpha values for each entry in the full dataset, non sorted.
         """
         posterior = self.model.sample_y(n_samples=self.n_post)
         alpha = self.acquisitor.score_points(posterior)
-        alpha = alpha[X_ind]
-        ranked_points = np.argsort(alpha)[::-1]
-        return ranked_points
+        return alpha
 
+
+# ---------------------------------------------------------------------------------------
+
+    
+class ExpectedImprovementRanker(SurrogateModelRanker):
+    
+    def __init__(self, model, acquisitor) -> None:
+        super().__init__(model, acquisitor)
+        self._ymax = 0.0
+        
+    def fit(self, x: Sequence[Feature], y: Sequence[Target]) -> None:
+        super().fit(x, y)
+        self._ymax = np.max(y)
+    
+    def determine_alpha(self) -> NDArray:
+        """Determine the alpha (ranking values) for all entries in the full dataset.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        NDArray
+            alpha values for each entry in the full dataset, non sorted.
+        """
+        mu, std = self.model.predict()
+        alpha = self.acquisitor.score_points(mu, std, self._ymax)
+        return alpha
+        
+    
 # ---------------------------------------------------------------------------------------

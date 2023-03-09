@@ -7,11 +7,11 @@ from ami.scheduler import SerialSchedulerFactory
 from ami.worker import ShareMemorySingleThreadWorkerFactory
 from ami.worker_pool import SingleNodeWorkerPoolFactory
 
-from surrogate.acquisition import GreedyNRanking, ThompsonRanking
+from surrogate.acquisition import GreedyNRanking
 from surrogate.dense import DenseGaussianProcessregressor
 from surrogate.data import Hdf5Dataset
 
-from ranking_models import PosteriorSurrogateRanker, RandomRanker
+from ranking_models import , RandomRanker
 from raspa import XeKrSeparation, CachedXeKrseparation
 
 
