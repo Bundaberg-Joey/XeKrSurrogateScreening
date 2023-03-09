@@ -175,7 +175,7 @@ class DenseRandomForestRegressor:
         """
         X = self.data_set[X_ind]
         self.model = RandomForestRegressor()
-        self.model.fit(X, y_val)
+        self.model.fit(X, np.ravel(y_val))
         
     def predict(self):
         # returns predicted values and the standard deviation of the those values
