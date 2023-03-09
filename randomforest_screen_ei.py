@@ -21,7 +21,7 @@ y_train = y_ref[X_train_ind]
 
 for itr in range(50, 370):        
     
-    model.fit(X_train_ind, y_train)
+    model.fit(X_train_ind, y_train.ravel())
     mu, std = model.predict()
     
     alpha = acquisitor.score_points(mu, std, y_train.max())
