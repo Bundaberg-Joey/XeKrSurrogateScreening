@@ -1,6 +1,7 @@
 import argparse
 
 import pandas as pd
+import numpy as np
 
 from surrogate.acquisition import GreedyNRanking, EiRanking
 from surrogate.dense import DenseGaussianProcessregressor, DenseRandomForestRegressor
@@ -43,8 +44,10 @@ y_train = y_ref[X_train_ind]
 for itr in range(370):        
     
     ranker.fit(X_train_ind, y_train)
-    ranked_remaining = ranker.rank([ix for ix in range(len(X_ref)) if ix not in X_train_ind])
-    to_sample = ranked_remaining[0]
+    
+    alpha = ranker.determine_alpha()
+    rankings = np.argsort(alpha)[::-1]    
+    to_sample = [i for i in rankings if i not in X_train_ind][0]
         
     X_train_ind.append(to_sample)    
     y_train = abs(y_ref[X_train_ind])
