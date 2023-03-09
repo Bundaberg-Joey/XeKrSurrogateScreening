@@ -25,7 +25,6 @@ class GreedyNRanking:
     def score_points(self, posterior):
         """Increment the count for each data point the amount of times it appears within the top `n_opt` of the sampled posterior.
         
-
         Parameters
         ----------
         posterior : Posterior distribution
@@ -45,7 +44,29 @@ class GreedyNRanking:
         
     
 class EiRanking:
+    """Conventional Expected Improvement Ranking.
+    Strikes a balance between selecting the next entry in `X` based on the expectation for it to improve 
+    upon the previously found largest value.
+    """
+    
     def score_points(self, mu, std, y_max):
+        """
+        Parameters
+        ----------
+        mu : Predicted values for all entries in `X`
+            Assumes shape is (len(X), )
+
+        std : Standard deviation for predicted values
+            Assumes shape is (len(X), )
+
+        y_max : float
+            Largest value experimentally sampled so far
+
+        Returns
+        -------
+        NDArray[np.float_]
+            Shape (len(X), )
+        """
         improvement = mu - y_max
         scaled_mu = np.divide(improvement, std)
         alpha = improvement * norm.cdf(scaled_mu) + std * norm.pdf(scaled_mu)
