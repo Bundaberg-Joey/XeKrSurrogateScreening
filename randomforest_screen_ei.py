@@ -15,7 +15,7 @@ y_ref = Hdf5Dataset('E7_07_XeKr_values.hdf5')
 model = DenseRandomForestRegressor(data_set=Hdf5Dataset('E7_05.hdf5'))
 acquisitor = ExpectedImprovementRanking()
 
-X_train_ind = list(np.random.choice(len(y_ref), 50))
+X_train_ind = list(np.random.choice(len(y_ref), 50, replace=False))
 y_train = y_ref[X_train_ind]
 
 
