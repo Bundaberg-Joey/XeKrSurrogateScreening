@@ -16,7 +16,7 @@ parser.add_argument('-f', type=str, help='fp file to use')
 args = parser.parse_args()
 
 fp_file = str(args.f)
-assert fp_file in [F'E7_11_PCFP_{i}_ind_1024.hdf5' for i in range(3)]
+#assert fp_file in [F'E7_11_PCFP_{i}_ind_1024.hdf5' for i in range(3)]
 
 # ----------------------------------------------------
 run_code = F'Ensemble_ei_{fp_file}_{uuid4().hex[::4]}'
