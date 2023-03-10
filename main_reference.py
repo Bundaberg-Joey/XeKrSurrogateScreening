@@ -39,7 +39,7 @@ ei_ranker = ExpectedImprovementRanker(
 ranker = {'ei': ei_ranker, 'greedy': greedy_n_ranker}[ranker_choice]
 
 
-X_train_ind = np.random.choice(len(y_ref.ravel()), size=1, replace=False)
+X_train_ind = list(np.random.choice(len(y_ref.ravel()), size=1, replace=False))
 #X_train_ind = list(pd.read_csv('Ex7_05_indices_sampled.txt', header=None)[0])
 y_train = y_ref[X_train_ind]
 
