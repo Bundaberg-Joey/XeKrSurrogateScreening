@@ -31,7 +31,7 @@ run_code = F'{ranker_choice}_{code}'
 
 # ---------------------------------------------------------------------------------------
 # set up ML code
-hdf5_dataset = Hdf5Dataset('Ex7_01_physical.hdf5')
+hdf5_dataset = Hdf5Dataset('Ex7_05_descriptors.hdf5')
 model = DenseGaussianProcessregressor(data_set=hdf5_dataset)
 
 gp_ranker = ExpectedImprovementRanker(
