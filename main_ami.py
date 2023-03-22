@@ -7,11 +7,11 @@ from ami.scheduler import SerialSchedulerFactory
 from ami.worker import ShareMemorySingleThreadWorkerFactory
 from ami.worker_pool import SingleNodeWorkerPoolFactory
 
-from surrogate.acquisition import GreedyNRanking, EiRanking
+from surrogate.acquisition import EiRanking
 from surrogate.dense import DenseGaussianProcessregressor, DenseRandomForestRegressor
 from surrogate.data import Hdf5Dataset
 
-from ranking_models import PosteriorRanker, ExpectedImprovementRanker, RandomRanker
+from ranking_models import ExpectedImprovementRanker, RandomRanker
 from raspa import XeKrSeparation
 
 
@@ -19,7 +19,7 @@ from raspa import XeKrSeparation
 # collect args
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-n', type=int, help='Total number of MOFs to screen.', default=370)
+parser.add_argument('-n', type=int, help='Total number of MOFs to screen.', default=344)
 parser.add_argument('-r', type=str, help='Ranker to use')
 args = parser.parse_args()
 
@@ -34,18 +34,17 @@ run_code = F'{ranker_choice}_{code}'
 hdf5_dataset = Hdf5Dataset('Ex7_01_physical.hdf5')
 model = DenseGaussianProcessregressor(data_set=hdf5_dataset)
 
-greedy_n_ranker = PosteriorRanker(
+gp_ranker = ExpectedImprovementRanker(
     model=DenseGaussianProcessregressor(data_set=hdf5_dataset),
-    acquisitor=GreedyNRanking(n_opt=100),
-    n_post=100
+    acquisitor=EiRanking()
     )
 
-ei_ranker = ExpectedImprovementRanker(
+rf_ranker = ExpectedImprovementRanker(
     model=DenseRandomForestRegressor(dataset=hdf5_dataset),
     acquisitor=EiRanking()
 )
 
-surrogate_ranker = {'ei': ei_ranker, 'greedy': greedy_n_ranker}[ranker_choice]
+surrogate_ranker = {'gp': gp_ranker, 'rf': rf_ranker}[ranker_choice]
 
 cached_results = Hdf5Dataset('E7_07_XeKr_values.hdf5')
 
