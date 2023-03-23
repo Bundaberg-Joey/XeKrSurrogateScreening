@@ -57,7 +57,7 @@ X_train_ind = list(pd.read_csv('Ex7_05_indices_sampled.txt', header=None)[0])
 y_train = y_ref[X_train_ind]
 
 
-for itr in range(344):        
+for itr in range(341):        
     
     ranker.fit(X_train_ind, y_train)
     
