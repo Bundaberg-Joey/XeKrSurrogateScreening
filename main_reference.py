@@ -36,8 +36,8 @@ run_code = F'{ranker_choice}_{uuid4().hex[::4]}'
 
 # ----------------------------------------------------
 
-X_ref = Hdf5Dataset('Ex7_05_descriptors.hdf5')
-y_ref = Hdf5Dataset('Ex7_05_selectivity.hdf5')[:].ravel()
+X_ref = Hdf5Dataset('Ex7_05_descriptors_2.hdf5')
+y_ref = Hdf5Dataset('Ex7_05_selectivity_2.hdf5')[:].ravel()
 
 rf_ranker = ExpectedImprovementRanker(
     model=DenseRandomForestRegressor(data_set=X_ref),
@@ -53,7 +53,7 @@ random_ranker = RandomRanker(dataset=X_ref)
 
 ranker = {'rf': rf_ranker, 'gp': gp_ranker, 'random': random_ranker}[ranker_choice]
 
-X_train_ind = list(pd.read_csv('Ex7_05_indices_sampled.txt', header=None)[0])
+X_train_ind = pd.read_csv('Ex7_05_init_random_sample_2.csv')['index'].tolist()
 y_train = y_ref[X_train_ind]
 
 
