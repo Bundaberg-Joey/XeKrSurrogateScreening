@@ -10,6 +10,20 @@ from surrogate.data import Hdf5Dataset
 
 from ranking_models import ExpectedImprovementRanker
 
+# ----------------------------------------------------
+
+class RandomRanker:
+
+    def __init__(self, dataset) -> None:
+        self.dataset = dataset
+        self.n = len(self.dataset)
+
+    def fit(self, X, y):
+        pass
+
+    def determine_alpha(self):
+        return np.random.uniform(size=self.n)
+
 
 # ----------------------------------------------------
 
@@ -35,13 +49,15 @@ gp_ranker = ExpectedImprovementRanker(
     acquisitor=EiRanking()
 )
 
-ranker = {'rf': rf_ranker, 'gp': gp_ranker}[ranker_choice]
+random_ranker = RandomRanker(dataset=X_ref)
+
+ranker = {'rf': rf_ranker, 'gp': gp_ranker, 'random': random_ranker}[ranker_choice]
 
 X_train_ind = list(pd.read_csv('Ex7_05_indices_sampled.txt', header=None)[0])
 y_train = y_ref[X_train_ind]
 
 
-for itr in range(370):        
+for itr in range(344):        
     
     ranker.fit(X_train_ind, y_train)
     
